@@ -8,73 +8,107 @@
   :root{ --bg:#141414; --card:#1e1e1e; --line:#3a3a3a; --ink:#f2f2f2; --soft:#9a9a9a; --gold:#c9922b; --gold2:#b8860b; --red:#e0715a; }
   *{ box-sizing:border-box; }
   html,body{ margin:0; height:100%; }
-  body{
-    background:radial-gradient(1200px 600px at 50% -10%, #2a2a2a 0%, var(--bg) 55%);
-    color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
-    display:flex; align-items:center; justify-content:center; padding:24px;
-  }
-  .card{
-    width:100%; max-width:400px; background:var(--card); border:1px solid var(--line);
-    border-radius:18px; padding:34px 28px 28px; box-shadow:0 24px 60px rgba(0,0,0,.45);
-  }
+  body{ background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; }
+
+  /* ---- 登入畫面 ---- */
+  #loginView{ display:flex; align-items:center; justify-content:center; min-height:100%; padding:24px;
+    background:radial-gradient(1200px 600px at 50% -10%, #2a2a2a 0%, var(--bg) 55%); }
+  .card{ width:100%; max-width:400px; background:var(--card); border:1px solid var(--line);
+    border-radius:18px; padding:34px 28px 28px; box-shadow:0 24px 60px rgba(0,0,0,.45); }
   .brand{ font-size:26px; font-weight:800; letter-spacing:2px; text-align:center; }
   .brand .en{ display:block; font-size:12px; letter-spacing:4px; color:var(--gold); font-weight:700; margin-top:4px; }
   .sub{ text-align:center; color:var(--soft); font-size:14px; margin:8px 0 26px; }
   label{ display:block; font-size:13px; font-weight:700; color:#cfcfcf; margin:0 0 6px; }
-  input{
-    width:100%; background:#161616; border:1px solid var(--line); border-radius:11px;
-    color:var(--ink); font-size:17px; padding:13px 14px; outline:none; margin-bottom:16px;
-  }
+  input{ width:100%; background:#161616; border:1px solid var(--line); border-radius:11px;
+    color:var(--ink); font-size:17px; padding:13px 14px; outline:none; margin-bottom:16px; }
   input:focus{ border-color:var(--gold); }
   .hint{ font-size:12px; color:var(--soft); margin:-8px 0 18px; }
   .err{ display:none; background:rgba(224,113,90,.12); border:1px solid rgba(224,113,90,.4); color:var(--red);
     font-size:13.5px; padding:10px 12px; border-radius:10px; margin-bottom:16px; line-height:1.5; }
-  button{
-    width:100%; border:0; border-radius:11px; padding:14px; font-size:17px; font-weight:800; cursor:pointer;
-    background:linear-gradient(180deg,var(--gold),var(--gold2)); color:#1a1200;
-  }
-  button:active{ transform:translateY(1px); }
+  #go{ width:100%; border:0; border-radius:11px; padding:14px; font-size:17px; font-weight:800; cursor:pointer;
+    background:linear-gradient(180deg,var(--gold),var(--gold2)); color:#1a1200; }
+  #go:active{ transform:translateY(1px); }
   .stat{ text-align:center; color:var(--soft); font-size:12px; min-height:16px; margin-top:14px; }
   .foot{ text-align:center; color:#666; font-size:11px; margin-top:20px; letter-spacing:1px; }
+
+  /* ---- 進入系統後：整頁內嵌，網址不變 ---- */
+  #appView{ display:none; position:fixed; inset:0; background:var(--bg); }
+  #frame{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+  #frameLoading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--soft); font-size:15px; background:var(--bg); }
+  #logout{ position:fixed; top:8px; right:10px; z-index:2147483647; cursor:pointer;
+    background:rgba(20,20,20,.72); color:#eee; border:1px solid rgba(255,255,255,.25);
+    border-radius:20px; padding:6px 13px; font-size:12.5px; font-weight:700; backdrop-filter:blur(3px); }
+  #logout:hover{ background:rgba(20,20,20,.92); }
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="brand">歐馬企業<span class="en">OMA · VIP ACCESS</span></div>
-    <div class="sub">VIP 客戶專屬入口</div>
+  <!-- 登入畫面 -->
+  <div id="loginView">
+    <div class="card">
+      <div class="brand">歐馬企業<span class="en">OMA · VIP ACCESS</span></div>
+      <div class="sub">VIP 客戶專屬入口</div>
 
-    <label for="name">您的稱呼</label>
-    <input id="name" placeholder="例：王先生" autocomplete="off">
+      <label for="name">您的稱呼</label>
+      <input id="name" placeholder="例：王先生" autocomplete="off">
 
-    <label for="pw">密碼</label>
-    <input id="pw" type="password" placeholder="請輸入密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <div class="hint">密碼由您的業務專員提供</div>
+      <label for="pw">密碼</label>
+      <input id="pw" type="password" placeholder="請輸入密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="hint">密碼由您的業務專員提供</div>
 
-    <div id="err" class="err"></div>
-    <button id="go">進　入</button>
-    <div id="stat" class="stat"></div>
-    <div class="foot">© 歐馬企業股份有限公司</div>
+      <div id="err" class="err"></div>
+      <button id="go">進　入</button>
+      <div id="stat" class="stat"></div>
+      <div class="foot">© 歐馬企業股份有限公司</div>
+    </div>
+  </div>
+
+  <!-- 進入系統後（同一頁內嵌，網址不變） -->
+  <div id="appView">
+    <div id="frameLoading">載入中…</div>
+    <iframe id="frame" title="歐馬報價系統" allow="clipboard-write"></iframe>
+    <button id="logout">登出 / 換系統</button>
   </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-/* 目標系統網址（皆為 oma2026.github.io 同網域，交接走 sessionStorage、不經網址） */
+/* 目標系統（皆為 oma2026.github.io 同網域）。入口頁部署在同網域時，內嵌 + 自動登入才會生效 */
 const CAT_URL ="https://oma2026.github.io/caterhamsunlight5/";
 const CAMP_URL="https://oma2026.github.io/camperconversionquote4/";
+const HKEY="oma_vip_handoff";
 
-/* 兩套系統各自的 Firebase（用來驗證密碼、判斷歸屬業務） */
 const catCfg={apiKey:"AIzaSyClVmJRvr-gLYPkkueHLt9-eC1HmmZUF7A",authDomain:"caterhamsunlight-bdff0.firebaseapp.com",projectId:"caterhamsunlight-bdff0",storageBucket:"caterhamsunlight-bdff0.firebasestorage.app",messagingSenderId:"356604072691",appId:"1:356604072691:web:ed51ec6efa44aa8b129d86"};
 const campCfg={apiKey:"AIzaSyA5VM_w5h7-IqHbHMNkSYsqpHweeicu30s",authDomain:"camperconversionquote.firebaseapp.com",projectId:"camperconversionquote",storageBucket:"camperconversionquote.firebasestorage.app",messagingSenderId:"725396550873",appId:"1:725396550873:web:50057d8dfc06718d72bac8"};
 
-let caterhamCodes=new Set();   // Caterham/Sunlight 有效客戶全碼（小寫）
-let camperCodeMap=new Map();   // 改裝：全碼(小寫) → 業務代號
+let caterhamCodes=new Set();
+let camperCodeMap=new Map();
 let loaded=false;
 
 const $=id=>document.getElementById(id);
 function showErr(m){ const e=$("err"); e.textContent=m||""; e.style.display=m?"block":"none"; }
 function setStat(m){ const s=$("stat"); if(s) s.textContent=m||""; }
+function targetOf(sys){ return sys==="camper"?CAMP_URL:CAT_URL; }
+
+function readHandoff(){
+  try{ const raw=sessionStorage.getItem(HKEY); if(!raw)return null; const h=JSON.parse(raw);
+    if(!h||!h.sys)return null; if(h.ts&&(Date.now()-h.ts>86400000))return null; return h; }catch(e){ return null; }
+}
+function showApp(url){
+  $("frameLoading").style.display="flex";
+  $("loginView").style.display="none";
+  $("appView").style.display="block";
+  const f=$("frame"); if(f.getAttribute("src")!==url) f.setAttribute("src",url);
+}
+function backToLogin(){
+  try{ sessionStorage.removeItem(HKEY); sessionStorage.removeItem("oma_vip_logged"); }catch(e){}
+  const f=$("frame"); if(f) f.setAttribute("src","about:blank");
+  $("appView").style.display="none";
+  $("loginView").style.display="flex";
+  $("pw").value=""; showErr(""); setStat(""); $("name").focus();
+}
 
 setStat("系統準備中…");
 (async function loadCodes(){
@@ -100,7 +134,6 @@ function go(){
   if(!raw){ showErr("請輸入密碼"); $("pw").focus(); return; }
   const pw=raw.toLowerCase();
 
-  // 只打了業務代號、忘了結尾字母
   if(loaded && (caterhamCodes.has(pw) || camperCodeMap.has(pw))){
     showErr("密碼結尾請加上英文字母：M＝改裝、C＝Caterham、S＝Sunlight"); return;
   }
@@ -112,15 +145,22 @@ function go(){
   else { showErr("密碼結尾請加上英文字母：M＝改裝、C＝Caterham、S＝Sunlight"); return; }
 
   const handoff={ sys:sys, pass:base, name:name, brand:brand, rep:rep, ts:Date.now() };
-  try{ sessionStorage.setItem("oma_vip_handoff", JSON.stringify(handoff)); }
-  catch(e){ showErr("此瀏覽器不支援自動登入，請改用 Safari 或 Chrome"); return; }
-  setStat("登入中…");
-  location.href = (sys==="camper") ? CAMP_URL : CAT_URL;
+  try{ sessionStorage.setItem(HKEY, JSON.stringify(handoff)); }
+  catch(e){ showErr("此瀏覽器不支援，請改用 Safari 或 Chrome"); return; }
+  showApp(targetOf(sys));   // 同一頁內嵌顯示，網址不變
 }
 
 $("go").addEventListener("click", go);
 ["name","pw"].forEach(id=>$(id).addEventListener("keydown", e=>{ if(e.key==="Enter") go(); }));
-$("name").focus();
+$("logout").addEventListener("click", backToLogin);
+$("frame").addEventListener("load", ()=>{ const l=$("frameLoading"); if(l) l.style.display="none"; });
+
+/* 重新整理仍停在同一頁：已有有效交接資料就直接顯示對應系統，不用重打 */
+(function(){
+  const h=readHandoff();
+  if(h){ showApp(targetOf(h.sys)); }
+  else { $("loginView").style.display="flex"; $("name").focus(); }
+})();
 </script>
 </body>
 </html>
