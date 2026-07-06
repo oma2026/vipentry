@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>歐馬企業 · VIP 客戶入口</title>
+<style>
+  :root{ --bg:#141414; --card:#1e1e1e; --line:#3a3a3a; --ink:#f2f2f2; --soft:#9a9a9a; --gold:#c9922b; --gold2:#b8860b; --red:#e0715a; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #2a2a2a 0%, var(--bg) 55%);
+    color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    width:100%; max-width:400px; background:var(--card); border:1px solid var(--line);
+    border-radius:18px; padding:34px 28px 28px; box-shadow:0 24px 60px rgba(0,0,0,.45);
+  }
+  .brand{ font-size:26px; font-weight:800; letter-spacing:2px; text-align:center; }
+  .brand .en{ display:block; font-size:12px; letter-spacing:4px; color:var(--gold); font-weight:700; margin-top:4px; }
+  .sub{ text-align:center; color:var(--soft); font-size:14px; margin:8px 0 26px; }
+  label{ display:block; font-size:13px; font-weight:700; color:#cfcfcf; margin:0 0 6px; }
+  input{
+    width:100%; background:#161616; border:1px solid var(--line); border-radius:11px;
+    color:var(--ink); font-size:17px; padding:13px 14px; outline:none; margin-bottom:16px;
+  }
+  input:focus{ border-color:var(--gold); }
+  .hint{ font-size:12px; color:var(--soft); margin:-8px 0 18px; }
+  .err{ display:none; background:rgba(224,113,90,.12); border:1px solid rgba(224,113,90,.4); color:var(--red);
+    font-size:13.5px; padding:10px 12px; border-radius:10px; margin-bottom:16px; line-height:1.5; }
+  button{
+    width:100%; border:0; border-radius:11px; padding:14px; font-size:17px; font-weight:800; cursor:pointer;
+    background:linear-gradient(180deg,var(--gold),var(--gold2)); color:#1a1200;
+  }
+  button:active{ transform:translateY(1px); }
+  .stat{ text-align:center; color:var(--soft); font-size:12px; min-height:16px; margin-top:14px; }
+  .foot{ text-align:center; color:#666; font-size:11px; margin-top:20px; letter-spacing:1px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">歐馬企業<span class="en">OMA · VIP ACCESS</span></div>
+    <div class="sub">VIP 客戶專屬入口</div>
+
+    <label for="name">您的稱呼</label>
+    <input id="name" placeholder="例：王先生" autocomplete="off">
+
+    <label for="pw">密碼</label>
+    <input id="pw" type="password" placeholder="請輸入密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="hint">密碼由您的業務專員提供</div>
+
+    <div id="err" class="err"></div>
+    <button id="go">進　入</button>
+    <div id="stat" class="stat"></div>
+    <div class="foot">© 歐馬企業股份有限公司</div>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+/* 目標系統網址（皆為 oma2026.github.io 同網域，交接走 sessionStorage、不經網址） */
+const CAT_URL ="https://oma2026.github.io/caterhamsunlight5/";
+const CAMP_URL="https://oma2026.github.io/camperconversionquote4/";
+
+/* 兩套系統各自的 Firebase（用來驗證密碼、判斷歸屬業務） */
+const catCfg={apiKey:"AIzaSyClVmJRvr-gLYPkkueHLt9-eC1HmmZUF7A",authDomain:"caterhamsunlight-bdff0.firebaseapp.com",projectId:"caterhamsunlight-bdff0",storageBucket:"caterhamsunlight-bdff0.firebasestorage.app",messagingSenderId:"356604072691",appId:"1:356604072691:web:ed51ec6efa44aa8b129d86"};
+const campCfg={apiKey:"AIzaSyA5VM_w5h7-IqHbHMNkSYsqpHweeicu30s",authDomain:"camperconversionquote.firebaseapp.com",projectId:"camperconversionquote",storageBucket:"camperconversionquote.firebasestorage.app",messagingSenderId:"725396550873",appId:"1:725396550873:web:50057d8dfc06718d72bac8"};
+
+let caterhamCodes=new Set();   // Caterham/Sunlight 有效客戶全碼（小寫）
+let camperCodeMap=new Map();   // 改裝：全碼(小寫) → 業務代號
+let loaded=false;
+
+const $=id=>document.getElementById(id);
+function showErr(m){ const e=$("err"); e.textContent=m||""; e.style.display=m?"block":"none"; }
+function setStat(m){ const s=$("stat"); if(s) s.textContent=m||""; }
+
+setStat("系統準備中…");
+(async function loadCodes(){
+  try{
+    const catDb=getFirestore(initializeApp(catCfg,"cat"));
+    let prefix="2026";
+    try{ const st=await getDoc(doc(catDb,"appdata","ctm_settings_v1")); if(st.exists()){ const s=JSON.parse(st.data().v||"{}"); if(s&&s.vipPrefix&&String(s.vipPrefix).trim()) prefix=String(s.vipPrefix).trim(); } }catch(e){}
+    try{ const ac=await getDoc(doc(catDb,"appdata","ctm_accounts_v2")); if(ac.exists()){ const a=JSON.parse(ac.data().v||"{}"); (a.sales||[]).forEach(s=>{ if(s.shared)return; const code=((s.vipPass&&String(s.vipPass).trim())||(prefix+s.u)).toLowerCase(); if(code) caterhamCodes.add(code); }); } }catch(e){}
+
+    const campDb=getFirestore(initializeApp(campCfg,"camp"));
+    try{ const cf=await getDoc(doc(campDb,"settings","config")); if(cf.exists()){ const db=cf.data()||{}; const base=(db.sales&&db.sales.custBase)||"2026"; ((db.sales&&db.sales.list)||[]).forEach(r=>{ const code=((r.code&&String(r.code).trim())||(base+String(r.key||"").toLowerCase())).toLowerCase(); if(code) camperCodeMap.set(code,r.key); }); } }catch(e){}
+
+    loaded=(caterhamCodes.size>0 || camperCodeMap.size>0);
+  }catch(e){ console.warn("載入代碼失敗",e); }
+  setStat("");
+})();
+
+function go(){
+  showErr(""); setStat("");
+  const name=($("name").value||"").trim();
+  const raw =($("pw").value||"").trim();
+  if(!name){ showErr("請輸入您的稱呼"); $("name").focus(); return; }
+  if(!raw){ showErr("請輸入密碼"); $("pw").focus(); return; }
+  const pw=raw.toLowerCase();
+
+  // 只打了業務代號、忘了結尾字母
+  if(loaded && (caterhamCodes.has(pw) || camperCodeMap.has(pw))){
+    showErr("密碼結尾請加上英文字母：M＝改裝、C＝Caterham、S＝Sunlight"); return;
+  }
+  const suffix=pw.slice(-1), base=pw.slice(0,-1);
+  let sys, brand=null, rep=null;
+  if(suffix==="m"){ if(loaded && !camperCodeMap.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; } sys="camper"; rep=camperCodeMap.get(base)||null; }
+  else if(suffix==="c"){ if(loaded && !caterhamCodes.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; } sys="caterham"; brand="caterham"; }
+  else if(suffix==="s"){ if(loaded && !caterhamCodes.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; } sys="caterham"; brand="sunlight"; }
+  else { showErr("密碼結尾請加上英文字母：M＝改裝、C＝Caterham、S＝Sunlight"); return; }
+
+  const handoff={ sys:sys, pass:base, name:name, brand:brand, rep:rep, ts:Date.now() };
+  try{ sessionStorage.setItem("oma_vip_handoff", JSON.stringify(handoff)); }
+  catch(e){ showErr("此瀏覽器不支援自動登入，請改用 Safari 或 Chrome"); return; }
+  setStat("登入中…");
+  location.href = (sys==="camper") ? CAMP_URL : CAT_URL;
+}
+
+$("go").addEventListener("click", go);
+["name","pw"].forEach(id=>$(id).addEventListener("keydown", e=>{ if(e.key==="Enter") go(); }));
+$("name").focus();
+</script>
+</body>
+</html>
