@@ -89,6 +89,7 @@ const campCfg={apiKey:"AIzaSyA5VM_w5h7-IqHbHMNkSYsqpHweeicu30s",authDomain:"camp
 let caterhamCodes=new Set();   // Caterham/Sunlight 有效客戶全碼（小寫）
 let camperCodeMap=new Map();   // 改裝：全碼(小寫) → 業務代號
 let loaded=false;
+let vipRoutes=[{ltr:"c",dest:"caterham"},{ltr:"s",dest:"sunlight"},{ltr:"m",dest:"camper"}];   // 開頭字母→目的地；後台設定會覆蓋
 
 const $=id=>document.getElementById(id);
 function showErr(m){ const e=$("err"); e.textContent=m||""; e.style.display=m?"block":"none"; }
@@ -118,7 +119,7 @@ setStat("系統準備中…");
   try{
     const catDb=getFirestore(initializeApp(catCfg,"cat"));
     let prefix="2026";
-    try{ const st=await getDoc(doc(catDb,"appdata","ctm_settings_v1")); if(st.exists()){ const s=JSON.parse(st.data().v||"{}"); if(s&&s.vipPrefix&&String(s.vipPrefix).trim()) prefix=String(s.vipPrefix).trim(); } }catch(e){}
+    try{ const st=await getDoc(doc(catDb,"appdata","ctm_settings_v1")); if(st.exists()){ const s=JSON.parse(st.data().v||"{}"); if(s&&s.vipPrefix&&String(s.vipPrefix).trim()) prefix=String(s.vipPrefix).trim(); if(s&&Array.isArray(s.vipRoutes)&&s.vipRoutes.length) vipRoutes=s.vipRoutes; } }catch(e){}
     try{ const ac=await getDoc(doc(catDb,"appdata","ctm_accounts_v2")); if(ac.exists()){ const a=JSON.parse(ac.data().v||"{}"); (a.sales||[]).forEach(s=>{ if(s.shared)return; const code=((s.vipPass&&String(s.vipPass).trim())||(prefix+s.u)).toLowerCase(); if(code) caterhamCodes.add(code); }); } }catch(e){}
 
     const campDb=getFirestore(initializeApp(campCfg,"camp"));
@@ -136,16 +137,25 @@ function go(){
   if(!name){ showErr("請輸入您的稱呼"); $("name").focus(); return; }
   if(!raw){ showErr("請輸入密碼"); $("pw").focus(); return; }
   const pw=raw.toLowerCase();
+  const letters=vipRoutes.map(r=>String(r.ltr||"").toLowerCase()).filter(Boolean);
+  const lettersTxt=letters.map(l=>l.toUpperCase()).join("／")||"C／S／M";
 
+  // 忘了在最前面加字母（整組剛好等於某個 VIP 密碼）
   if(loaded && (caterhamCodes.has(pw) || camperCodeMap.has(pw))){
-    showErr("密碼結尾請加上英文字母：M＝改裝、C＝Caterham、S＝Sunlight"); return;
+    showErr("請在密碼最前面加上字母："+lettersTxt); return;
   }
-  const suffix=pw.slice(-1), base=pw.slice(0,-1);
+  const letter=pw.slice(0,1), base=pw.slice(1);
+  const route=vipRoutes.find(r=>String(r.ltr||"").toLowerCase()===letter);
+  if(!route){ showErr("密碼開頭的字母不正確（應為 "+lettersTxt+"）"); return; }
+
   let sys, brand=null, rep=null;
-  if(suffix==="m"){ if(loaded && !camperCodeMap.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; } sys="camper"; rep=camperCodeMap.get(base)||null; }
-  else if(suffix==="c"){ if(loaded && !caterhamCodes.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; } sys="caterham"; brand="caterham"; }
-  else if(suffix==="s"){ if(loaded && !caterhamCodes.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; } sys="caterham"; brand="sunlight"; }
-  else { showErr("密碼結尾請加上英文字母：M＝改裝、C＝Caterham、S＝Sunlight"); return; }
+  if(route.dest==="camper"){
+    if(loaded && !camperCodeMap.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; }
+    sys="camper"; rep=camperCodeMap.get(base)||null;
+  } else {   // caterham / sunlight（同一支程式，差在鎖哪個品牌）
+    if(loaded && !caterhamCodes.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; }
+    sys="caterham"; brand=(route.dest==="sunlight")?"sunlight":"caterham";
+  }
 
   const handoff={ sys:sys, pass:base, name:name, brand:brand, rep:rep, ts:Date.now() };
   try{ sessionStorage.setItem(HKEY, JSON.stringify(handoff)); }
