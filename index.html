@@ -11,17 +11,18 @@
     --line:#D2D2D7; --line-soft:#E5E5E7;
     --card:#FFFFFF; --field:#F5F5F7;
     --accent:#1D1D1F; --accent-ring:rgba(29,29,31,.10);
+    --focus:#0071E3; --focus-ring:rgba(0,113,227,.14);
     --red:#E0342A; --red-bg:rgba(224,52,42,.08); --red-line:rgba(224,52,42,.25);
   }
   *{ box-sizing:border-box; }
-  html,body{ margin:0; height:100%; }
+  html,body{ margin:0; min-height:100%; }
   body{ background:var(--bg-1); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
     -webkit-font-smoothing:antialiased; }
 
-  /* ===== 登入畫面：明亮、乾淨、Apple 風 ===== */
-  #loginView{ position:relative; overflow:hidden; min-height:100%;
-    display:flex; flex-direction:column; padding:36px 56px; animation:pageIn .8s ease both; }
+  /* ===== 登入畫面：單欄置中，Apple 風 ===== */
+  #loginView{ position:relative; overflow-x:hidden; min-height:100vh;
+    display:flex; flex-direction:column; padding:36px 56px 60px; animation:pageIn .8s ease both; }
   @keyframes pageIn{ from{opacity:0} to{opacity:1} }
 
   .bg{ position:absolute; inset:0; z-index:0;
@@ -33,26 +34,28 @@
   .logo img{ height:22px; width:auto; display:block; }
   .topbar-links{ font-size:12px; letter-spacing:.06em; color:var(--muted); font-weight:400; }
 
-  /* 主要區：左標題 / 右登入卡 */
-  .mainrow{ flex:1; display:flex; align-items:center; gap:96px; }
-  .hero-col{ flex:1.1; min-width:0; display:flex; flex-direction:column; justify-content:center;
+  /* 中間主內容：單欄置中 */
+  .center-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:40px; padding:40px 20px; }
+
+  .hero{ display:flex; flex-direction:column; align-items:center;
     animation:heroUp .9s .08s cubic-bezier(.2,.7,.2,1) both; }
   @keyframes heroUp{ from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none} }
 
-  .hero-title{ font-weight:600; font-size:clamp(34px,3.6vw,48px); line-height:1.14;
-    letter-spacing:-.01em; color:var(--ink); margin:0 0 16px; }
-  .hero-sub{ font-size:17px; line-height:1.6; color:var(--ink); max-width:400px; font-weight:400; margin:0 0 18px; }
-  .hero-note{ font-size:13.5px; line-height:1.7; color:var(--muted); max-width:380px; letter-spacing:.005em; }
+  .hero-title{ font-weight:500; font-size:clamp(28px,3vw,40px); line-height:1.16;
+    letter-spacing:-.01em; color:var(--ink); margin:0 0 14px; }
+  .hero-sub{ font-size:16px; line-height:1.6; color:var(--ink); max-width:460px; font-weight:400; margin:0 0 12px; }
+  .hero-note{ font-size:13px; line-height:1.6; color:var(--muted); max-width:420px; letter-spacing:.01em; }
 
-  /* 登入卡：白卡、淡灰邊、柔和陰影 */
-  .card{ position:relative; flex:0 0 400px; max-width:calc(100% - 20px);
-    background:var(--card); border:1px solid var(--line); border-radius:24px;
-    box-shadow:0 20px 45px rgba(0,0,0,.06); padding:44px 38px;
+  /* 登入卡：白卡、更淡邊框、更淡陰影 */
+  .card{ position:relative; width:400px; max-width:calc(100% - 32px);
+    background:var(--card); border:1px solid var(--line-soft); border-radius:24px;
+    box-shadow:0 12px 32px rgba(0,0,0,.04); padding:38px;
     animation:cardIn .9s .13s cubic-bezier(.2,.7,.2,1) both; }
   @keyframes cardIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
 
   .card-title{ font-size:21px; font-weight:600; letter-spacing:-.005em; color:var(--ink); margin:0 0 8px; }
-  .card-desc{ font-size:13.5px; color:var(--muted); margin:0 0 30px; }
+  .card-desc{ font-size:13.5px; color:var(--muted); margin:0 0 28px; }
 
   .field{ text-align:left; margin-bottom:16px; }
   label{ display:block; font-size:13px; font-weight:500; color:var(--ink); margin:0 0 8px; }
@@ -63,7 +66,7 @@
     border-radius:12px; color:var(--ink); font-size:14.5px; padding:0 16px 0 42px; outline:none;
     transition:border-color .15s, box-shadow .15s, background .15s; }
   input::placeholder{ color:var(--muted-2); }
-  input:focus{ border-color:var(--accent); background:#fff; box-shadow:0 0 0 4px var(--accent-ring); }
+  input:focus{ border-color:var(--focus); background:#fff; box-shadow:0 0 0 3px var(--focus-ring); }
   #pw{ padding-right:60px; }
   .pwtoggle{ position:absolute; right:12px; background:none; border:0; color:var(--muted);
     font-size:12px; font-weight:500; cursor:pointer; padding:8px 4px; }
@@ -79,24 +82,22 @@
   #go:active{ transform:scale(.99); }
   .stat{ text-align:center; color:var(--muted); font-size:11.5px; min-height:16px; margin-top:12px; }
 
-  .forgot{ display:block; width:100%; text-align:center; margin-top:22px; padding-top:20px;
+  .forgot{ display:block; width:100%; text-align:center; margin-top:20px; padding-top:18px;
     border:0; border-top:1px solid var(--line-soft); background:none; cursor:pointer;
     font-size:12.5px; color:var(--muted); }
   .forgot:hover{ color:var(--ink); }
 
   @media(max-width:1024px){
-    #loginView{ padding:28px 30px 34px; }
-    .mainrow{ flex-direction:column; justify-content:flex-start; gap:40px; padding-top:16px; }
-    .hero-col{ text-align:center; align-items:center; }
-    .hero-sub,.hero-note{ max-width:440px; }
-    .card{ flex:0 0 auto; width:100%; max-width:420px; }
+    #loginView{ padding:28px 30px 40px; }
+    .center-wrap{ gap:32px; padding:24px 16px; }
   }
   @media(max-width:560px){
-    #loginView{ padding:22px 20px 26px; }
+    #loginView{ padding:22px 20px 30px; }
     .topbar-links{ display:none; }
-    .hero-title{ font-size:clamp(28px,7.5vw,36px); }
-    .card{ padding:34px 24px; }
+    .hero-title{ font-size:clamp(26px,7vw,32px); }
+    .card{ padding:30px 24px; }
   }
+
 
   /* ===== 進入系統後：整頁內嵌，網址不變 ===== */
   #appView{ display:none; position:fixed; inset:0; background:#0b0b0d; }
@@ -120,15 +121,15 @@
       <div class="topbar-links">CATERHAM　·　SUNLIGHT　·　客製改裝</div>
     </header>
 
-    <div class="mainrow">
-      <!-- 左：標題與說明 -->
-      <div class="hero-col">
+    <main class="center-wrap">
+      <!-- 標題與說明 -->
+      <div class="hero">
         <h1 class="hero-title">OMA Private Access</h1>
-        <p class="hero-sub">專屬客戶的車輛選配與簽約入口。</p>
-        <p class="hero-note">Configure your vehicle. Review your quote. Access your documents.</p>
+        <p class="hero-sub">查看報價、確認選配，並取得您的專屬文件。</p>
+        <p class="hero-note">Vehicle configuration · Quote review · Document access</p>
       </div>
 
-      <!-- 右：登入卡 -->
+      <!-- 登入卡 -->
       <div class="card">
         <h2 class="card-title">VIP 客戶登入</h2>
         <p class="card-desc">請輸入業務提供的登入資訊。</p>
@@ -153,12 +154,12 @@
         </div>
 
         <div id="err" class="err"></div>
-        <button id="go"><span class="go-t">進入專屬頁面</span></button>
+        <button id="go"><span class="go-t">繼續</span></button>
         <div id="stat" class="stat"></div>
 
         <button type="button" class="forgot" onclick="alert('忘記密碼請直接聯繫您的業務專員，由專員提供您的專屬密碼。');">忘記密碼？請聯繫您的業務顧問。</button>
       </div>
-    </div>
+    </main>
   </div>
 
 
