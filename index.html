@@ -31,6 +31,10 @@
     width:min(56vw,760px); height:220px;
     background:linear-gradient(0deg, rgba(0,0,0,.4) 0%, rgba(0,0,0,.16) 55%, rgba(0,0,0,0) 100%); }
 
+  .bg-scrim-hero{ position:absolute; left:0; top:0; bottom:0; z-index:0; pointer-events:none;
+    width:min(58vw,820px);
+    background:radial-gradient(ellipse 60% 42% at 30% 50%, rgba(0,0,0,.34) 0%, rgba(0,0,0,.16) 45%, rgba(0,0,0,0) 75%); }
+
   .brand-strip{ position:absolute; left:6vw; bottom:36px; z-index:1;
     display:flex; align-items:center; gap:18px; }
   .brand-strip img{ height:14px; width:auto; display:block; filter:drop-shadow(0 1px 3px rgba(0,0,0,.35)); }
@@ -44,7 +48,7 @@
   .wrap{ position:relative; z-index:1; width:100%; min-height:100vh; display:flex; align-items:stretch; justify-content:space-between;
     gap:40px; padding:0 6vw; }
 
-  .hero-left{ flex:1; min-width:0; align-self:flex-start; margin-top:min(26vh,240px);
+  .hero-left{ flex:1; min-width:0; align-self:center;
     animation:heroUp .9s .08s cubic-bezier(.2,.7,.2,1) both; }
   @keyframes heroUp{ from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none} }
   .hero-eyebrow{ font-size:12.5px; font-weight:700; letter-spacing:.24em; color:var(--blue);
@@ -131,6 +135,7 @@
   <!-- 登入畫面 -->
   <div id="loginView">
     <div class="bg-photo"></div>
+    <div class="bg-scrim-hero"></div>
     <div class="bg-scrim-corner"></div>
 
     <div class="brand-strip">
