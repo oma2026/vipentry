@@ -196,9 +196,12 @@
           </div>
 
           <div id="staffLogin" style="display:none">
-            <p style="color:#5a6475;font-size:14px;margin:4px 0 12px;line-height:1.6">請選擇您要登入的系統（進入後以英文名字＋密碼登入）：</p>
-            <button type="button" onclick="location.href='https://oma2026.github.io/caterhamsunlight5/#staff'" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px">Caterham ・ Sunlight 報價　→</button>
-            <button type="button" onclick="location.href='https://oma2026.github.io/camperconversionquote4/#staff'" style="width:100%;padding:14px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer">改裝報價　→</button>
+            <input id="staffName" placeholder="英文名字" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:14px 16px;margin-bottom:10px;border:1px solid #d3dae5;border-radius:12px;font-size:16px">
+            <input id="staffPw" type="password" placeholder="密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:14px 16px;border:1px solid #d3dae5;border-radius:12px;font-size:16px">
+            <div id="staffErr" style="color:#c0392b;font-size:13px;min-height:18px;margin:6px 2px"></div>
+            <p style="color:#5a6475;font-size:14px;margin:2px 0 10px">選擇要進入的系統（點了就登入）：</p>
+            <button type="button" onclick="staffGo('caterham')" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px">新車報價（Caterham ・ Sunlight）　→</button>
+            <button type="button" onclick="staffGo('camper')" style="width:100%;padding:14px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer">改裝報價　→</button>
           </div>
         </div>
       </div>
@@ -326,6 +329,17 @@ function vipMode(m){
   if(sc){ sc.style.background=staff?"#fff":"#2a56c6"; sc.style.color=staff?"#333":"#fff"; sc.style.borderColor=staff?"#d3dae5":"#2a56c6"; }
   if(ss){ ss.style.background=staff?"#2a56c6":"#fff"; ss.style.color=staff?"#fff":"#333"; ss.style.borderColor=staff?"#2a56c6":"#d3dae5"; }
   var hs=document.getElementById("heroSub"); if(hs) hs.textContent=staff?"員工登入":"客戶登入";
+}
+function staffGo(sys){
+  var nm=(document.getElementById("staffName").value||"").trim();
+  var pw=(document.getElementById("staffPw").value||"").trim();
+  var err=document.getElementById("staffErr");
+  if(!nm){ if(err) err.textContent="請輸入英文名字"; return; }
+  if(!pw){ if(err) err.textContent="請輸入密碼"; return; }
+  try{ sessionStorage.setItem("oma_staff_handoff", JSON.stringify({name:nm, pw:pw, ts:Date.now()})); }catch(e){}
+  location.href = (sys==="camper")
+    ? "https://oma2026.github.io/camperconversionquote4/#staff"
+    : "https://oma2026.github.io/caterhamsunlight5/#staff";
 }
 </script>
 </body>
