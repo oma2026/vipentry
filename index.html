@@ -151,7 +151,7 @@
       <!-- 左：大標題 -->
       <div class="hero-left">
         <p class="hero-eyebrow">Private Member Access</p>
-        <h1 class="hero-title"><span class="b">VIP</span> <span class="k">客戶登入</span></h1>
+        <h1 class="hero-title"><span class="b">VIP</span> <span class="k" id="heroSub">客戶登入</span></h1>
         <div class="hero-rule"></div>
       </div>
 
@@ -162,6 +162,12 @@
           <div class="card-rule"></div>
           <p class="card-tag">DRIVE YOUR LIFESTYLE</p>
 
+          <div style="display:flex;gap:8px;margin:14px 0 10px">
+            <button type="button" id="segStaff" onclick="vipMode('staff')" style="flex:1;padding:11px;border-radius:10px;border:1px solid #d3dae5;background:#fff;color:#333;font-weight:800;font-size:15px;cursor:pointer">① 員工</button>
+            <button type="button" id="segCust" onclick="vipMode('cust')" style="flex:1;padding:11px;border-radius:10px;border:1px solid #2a56c6;background:#2a56c6;color:#fff;font-weight:800;font-size:15px;cursor:pointer">② 客戶</button>
+          </div>
+
+          <div id="custLogin">
           <div class="field">
             <div class="inp">
               <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.3-5.6 7-5.6s7 2 7 5.6"/></svg>
@@ -187,6 +193,13 @@
 
           <div class="divider"><span>或</span></div>
           <button type="button" class="forgot" onclick="alert('忘記密碼請直接聯繫您的業務專員，由專員提供您的專屬密碼。');">忘記密碼？請聯繫您的業務專員　›</button>
+          </div>
+
+          <div id="staffLogin" style="display:none">
+            <p style="color:#5a6475;font-size:14px;margin:4px 0 12px;line-height:1.6">請選擇您要登入的系統（進入後以英文名字＋密碼登入）：</p>
+            <button type="button" onclick="location.href='https://oma2026.github.io/caterhamsunlight5/'" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px">Caterham ・ Sunlight 報價　→</button>
+            <button type="button" onclick="location.href='https://oma2026.github.io/camperconversionquote4/'" style="width:100%;padding:14px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer">改裝報價　→</button>
+          </div>
         </div>
       </div>
     </div>
@@ -302,6 +315,18 @@ $("frame").addEventListener("load", ()=>{ const l=$("frameLoading"); if(l) l.sty
   if(h){ showApp(targetOf(h.sys)); }
   else { $("loginView").style.display="flex"; $("name").focus(); }
 })();
+</script>
+<script>
+function vipMode(m){
+  var staff=(m==="staff");
+  var cl=document.getElementById("custLogin"), sl=document.getElementById("staffLogin");
+  if(cl) cl.style.display=staff?"none":"";
+  if(sl) sl.style.display=staff?"":"none";
+  var sc=document.getElementById("segCust"), ss=document.getElementById("segStaff");
+  if(sc){ sc.style.background=staff?"#fff":"#2a56c6"; sc.style.color=staff?"#333":"#fff"; sc.style.borderColor=staff?"#d3dae5":"#2a56c6"; }
+  if(ss){ ss.style.background=staff?"#2a56c6":"#fff"; ss.style.color=staff?"#fff":"#333"; ss.style.borderColor=staff?"#2a56c6":"#d3dae5"; }
+  var hs=document.getElementById("heroSub"); if(hs) hs.textContent=staff?"員工登入":"客戶登入";
+}
 </script>
 </body>
 </html>
