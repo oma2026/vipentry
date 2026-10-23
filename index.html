@@ -199,9 +199,12 @@
             <input id="staffName" placeholder="英文名字" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:14px 16px;margin-bottom:10px;border:1px solid #d3dae5;border-radius:12px;font-size:16px">
             <input id="staffPw" type="password" placeholder="密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:14px 16px;border:1px solid #d3dae5;border-radius:12px;font-size:16px">
             <div id="staffErr" style="color:#c0392b;font-size:13px;min-height:18px;margin:6px 2px"></div>
-            <p style="color:#5a6475;font-size:14px;margin:2px 0 10px">選擇要進入的系統（點了就登入）：</p>
-            <button type="button" onclick="staffGo('caterham')" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px">新車報價　→</button>
-            <button type="button" onclick="staffGo('camper')" style="width:100%;padding:14px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer">改裝報價　→</button>
+            <button type="button" id="staffLoginBtn" onclick="staffNext()" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer">登入　→</button>
+            <div id="staffSysChoice" style="display:none">
+              <p style="color:#5a6475;font-size:14px;margin:12px 0 10px">選擇要進入的系統：</p>
+              <button type="button" onclick="staffGo('caterham')" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px">新車報價　→</button>
+              <button type="button" onclick="staffGo('camper')" style="width:100%;padding:14px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer">改裝報價　→</button>
+            </div>
           </div>
         </div>
       </div>
@@ -329,6 +332,17 @@ function vipMode(m){
   if(sc){ sc.style.background=staff?"#fff":"#2a56c6"; sc.style.color=staff?"#333":"#fff"; sc.style.borderColor=staff?"#d3dae5":"#2a56c6"; }
   if(ss){ ss.style.background=staff?"#2a56c6":"#fff"; ss.style.color=staff?"#fff":"#333"; ss.style.borderColor=staff?"#2a56c6":"#d3dae5"; }
   var hs=document.getElementById("heroSub"); if(hs) hs.textContent=staff?"員工登入":"客戶登入";
+  if(staff){ var lb=document.getElementById("staffLoginBtn"), sc=document.getElementById("staffSysChoice"), se=document.getElementById("staffErr"); if(lb) lb.style.display=""; if(sc) sc.style.display="none"; if(se) se.textContent=""; }
+}
+function staffNext(){
+  var nm=(document.getElementById("staffName").value||"").trim();
+  var pw=(document.getElementById("staffPw").value||"").trim();
+  var err=document.getElementById("staffErr");
+  if(!nm){ if(err) err.textContent="請輸入英文名字"; return; }
+  if(!pw){ if(err) err.textContent="請輸入密碼"; return; }
+  if(err) err.textContent="";
+  var lb=document.getElementById("staffLoginBtn"); if(lb) lb.style.display="none";
+  var sc=document.getElementById("staffSysChoice"); if(sc) sc.style.display="";
 }
 function staffGo(sys){
   var nm=(document.getElementById("staffName").value||"").trim();
