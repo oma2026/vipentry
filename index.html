@@ -200,11 +200,6 @@
             <input id="staffPw" type="password" placeholder="密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:14px 16px;border:1px solid #d3dae5;border-radius:12px;font-size:16px">
             <div id="staffErr" style="color:#c0392b;font-size:13px;min-height:18px;margin:6px 2px"></div>
             <button type="button" id="staffLoginBtn" onclick="staffNext()" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer">登入　→</button>
-            <div id="staffSysChoice" style="display:none">
-              <p style="color:#5a6475;font-size:14px;margin:12px 0 10px">選擇要進入的系統：</p>
-              <button type="button" onclick="staffGo('caterham')" style="width:100%;padding:14px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:10px">新車報價　→</button>
-              <button type="button" onclick="staffGo('camper')" style="width:100%;padding:14px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer">改裝報價　→</button>
-            </div>
           </div>
         </div>
       </div>
@@ -322,6 +317,15 @@ $("frame").addEventListener("load", ()=>{ const l=$("frameLoading"); if(l) l.sty
   else { $("loginView").style.display="flex"; $("name").focus(); }
 })();
 </script>
+<div id="sysModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:18px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 24px 70px rgba(0,0,0,.45)">
+    <h3 style="margin:0 0 4px;font-size:20px;text-align:center;color:#1a2a4a">選擇要進入的系統</h3>
+    <p style="color:#5a6475;font-size:13px;text-align:center;margin:0 0 20px">點一下就登入</p>
+    <button type="button" onclick="staffGo('caterham')" style="width:100%;padding:15px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:12px">新車報價　→</button>
+    <button type="button" onclick="staffGo('camper')" style="width:100%;padding:15px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:12px">改裝報價　→</button>
+    <button type="button" onclick="document.getElementById('sysModal').style.display='none'" style="width:100%;padding:10px;border:0;background:transparent;color:#8a92a0;font-size:14px;cursor:pointer">取消</button>
+  </div>
+</div>
 <script>
 function vipMode(m){
   var staff=(m==="staff");
@@ -332,7 +336,8 @@ function vipMode(m){
   if(sc){ sc.style.background=staff?"#fff":"#2a56c6"; sc.style.color=staff?"#333":"#fff"; sc.style.borderColor=staff?"#d3dae5":"#2a56c6"; }
   if(ss){ ss.style.background=staff?"#2a56c6":"#fff"; ss.style.color=staff?"#fff":"#333"; ss.style.borderColor=staff?"#2a56c6":"#d3dae5"; }
   var hs=document.getElementById("heroSub"); if(hs) hs.textContent=staff?"員工登入":"客戶登入";
-  if(staff){ var lb=document.getElementById("staffLoginBtn"), sc=document.getElementById("staffSysChoice"), se=document.getElementById("staffErr"); if(lb) lb.style.display=""; if(sc) sc.style.display="none"; if(se) se.textContent=""; }
+  if(staff){ var se=document.getElementById("staffErr"); if(se) se.textContent=""; }
+  var sm=document.getElementById("sysModal"); if(sm) sm.style.display="none";
 }
 function staffNext(){
   var nm=(document.getElementById("staffName").value||"").trim();
@@ -341,8 +346,7 @@ function staffNext(){
   if(!nm){ if(err) err.textContent="請輸入英文名字"; return; }
   if(!pw){ if(err) err.textContent="請輸入密碼"; return; }
   if(err) err.textContent="";
-  var lb=document.getElementById("staffLoginBtn"); if(lb) lb.style.display="none";
-  var sc=document.getElementById("staffSysChoice"); if(sc) sc.style.display="";
+  var sm=document.getElementById("sysModal"); if(sm) sm.style.display="flex";
 }
 function staffGo(sys){
   var nm=(document.getElementById("staffName").value||"").trim();
