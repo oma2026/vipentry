@@ -170,15 +170,8 @@
           <div id="custLogin">
           <div class="field">
             <div class="inp">
-              <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.3-5.6 7-5.6s7 2 7 5.6"/></svg>
-              <input id="name" placeholder="您的稱呼" autocomplete="off" aria-label="您的稱呼">
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="inp">
               <svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
-              <input id="pw" type="password" placeholder="請輸入密碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="密碼">
+              <input id="pw" type="password" placeholder="輸入您的專屬代碼" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="代碼">
               <button type="button" id="pwToggle" class="pwtoggle" onclick="var p=document.getElementById('pw');var s=p.type==='password';p.type=s?'text':'password';document.getElementById('pwtxt').textContent=s?'隱藏':'顯示';document.getElementById('eyeOn').style.display=s?'none':'block';document.getElementById('eyeOff').style.display=s?'block':'none';">
                 <svg id="eyeOn" class="eye" viewBox="0 0 24 24"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg id="eyeOff" class="eye" viewBox="0 0 24 24" style="display:none"><path d="M3 3l18 18"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M6.5 6.6C3.4 8.6 1.5 12 1.5 12s2.4 4.8 7.6 6.4c1.4.4 2.7.6 3.9.6 1 0 2-.1 2.9-.4M17.6 15.4A13.6 13.6 0 0 0 22.5 12S19 5 12 5c-.5 0-.9 0-1.4.1"/></svg>
@@ -228,8 +221,9 @@ const HKEY="oma_vip_handoff";
 const catCfg={apiKey:"AIzaSyClVmJRvr-gLYPkkueHLt9-eC1HmmZUF7A",authDomain:"caterhamsunlight-bdff0.firebaseapp.com",projectId:"caterhamsunlight-bdff0",storageBucket:"caterhamsunlight-bdff0.firebasestorage.app",messagingSenderId:"356604072691",appId:"1:356604072691:web:ed51ec6efa44aa8b129d86"};
 const campCfg={apiKey:"AIzaSyA5VM_w5h7-IqHbHMNkSYsqpHweeicu30s",authDomain:"camperconversionquote.firebaseapp.com",projectId:"camperconversionquote",storageBucket:"camperconversionquote.firebasestorage.app",messagingSenderId:"725396550873",appId:"1:725396550873:web:50057d8dfc06718d72bac8"};
 
-let caterhamCodes=new Set();   // Caterham/Sunlight 有效客戶全碼（小寫）
-let camperCodeMap=new Map();   // 改裝：全碼(小寫) → 業務代號
+let caterhamCodes=new Set();   // 舊式：Caterham/Sunlight 業務固定碼（小寫）
+let camperCodeMap=new Map();   // 舊式：改裝固定碼(小寫) → 業務代號
+let vipCustMap=new Map();      // 新式：客戶虛擬帳號碼(小寫) → {rep, scope, active}
 let loaded=false;
 let vipRoutes=[{ltr:"c",dest:"caterham"},{ltr:"s",dest:"sunlight"},{ltr:"m",dest:"camper"}];   // 開頭字母→目的地；後台設定會覆蓋
 
@@ -253,7 +247,7 @@ function backToLogin(){
   const f=$("frame"); if(f) f.setAttribute("src","about:blank");
   $("appView").style.display="none";
   $("loginView").style.display="flex";
-  $("pw").value=""; showErr(""); setStat(""); $("name").focus();
+  $("pw").value=""; showErr(""); setStat(""); $("pw").focus();
 }
 
 setStat("系統準備中…");
@@ -262,51 +256,80 @@ setStat("系統準備中…");
     const catDb=getFirestore(initializeApp(catCfg,"cat"));
     let prefix="2026";
     try{ const st=await getDoc(doc(catDb,"appdata","ctm_settings_v1")); if(st.exists()){ const s=JSON.parse(st.data().v||"{}"); if(s&&s.vipPrefix&&String(s.vipPrefix).trim()) prefix=String(s.vipPrefix).trim(); if(s&&Array.isArray(s.vipRoutes)&&s.vipRoutes.length) vipRoutes=s.vipRoutes; } }catch(e){}
-    try{ const ac=await getDoc(doc(catDb,"appdata","ctm_accounts_v2")); if(ac.exists()){ const a=JSON.parse(ac.data().v||"{}"); (a.sales||[]).forEach(s=>{ if(s.shared)return; const code=((s.vipPass&&String(s.vipPass).trim())||(prefix+s.u)).toLowerCase(); if(code) caterhamCodes.add(code); }); } }catch(e){}
+    try{ const ac=await getDoc(doc(catDb,"appdata","ctm_accounts_v2")); if(ac.exists()){ const a=JSON.parse(ac.data().v||"{}"); (a.sales||[]).forEach(s=>{ if(s.shared)return;
+      const code=((s.vipPass&&String(s.vipPass).trim())||(prefix+s.u)).toLowerCase(); if(code) caterhamCodes.add(code);
+      (s.vipCustomers||[]).forEach(c=>{ if(c&&c.code) vipCustMap.set(String(c.code).toLowerCase(), {rep:s.u, scope:c.scope||"caterham", active:c.active!==false}); });   // 新式：客戶虛擬帳號碼
+    }); } }catch(e){}
 
     const campDb=getFirestore(initializeApp(campCfg,"camp"));
     try{ const cf=await getDoc(doc(campDb,"settings","config")); if(cf.exists()){ const db=cf.data()||{}; const base=(db.sales&&db.sales.custBase)||"2026"; ((db.sales&&db.sales.list)||[]).forEach(r=>{ const code=((r.code&&String(r.code).trim())||(base+String(r.key||"").toLowerCase())).toLowerCase(); if(code) camperCodeMap.set(code,r.key); }); } }catch(e){}
 
-    loaded=(caterhamCodes.size>0 || camperCodeMap.size>0);
+    loaded=(caterhamCodes.size>0 || camperCodeMap.size>0 || vipCustMap.size>0);
   }catch(e){ console.warn("載入代碼失敗",e); }
   setStat("");
 })();
 
 function go(){
   showErr(""); setStat("");
-  const name=($("name").value||"").trim();
   const raw =($("pw").value||"").trim();
-  if(!name){ showErr("請輸入您的稱呼"); $("name").focus(); return; }
-  if(!raw){ showErr("請輸入密碼"); $("pw").focus(); return; }
+  if(!raw){ showErr("請輸入您的代碼"); $("pw").focus(); return; }
   const pw=raw.toLowerCase();
-  const letters=vipRoutes.map(r=>String(r.ltr||"").toLowerCase()).filter(Boolean);
-  const lettersTxt=letters.map(l=>l.toUpperCase()).join("／")||"C／S／M";
 
-  // 忘了在最前面加字母（整組剛好等於某個 VIP 密碼）
-  if(loaded && (caterhamCodes.has(pw) || camperCodeMap.has(pw))){
-    showErr("請在密碼最前面加上字母："+lettersTxt); return;
+  // 新式：客戶虛擬帳號碼（一個客戶一組、已鎖好品牌）→ 直接進，不用選、不用打名字（名字在最後一步填）
+  if(loaded && vipCustMap.has(pw)){
+    const v=vipCustMap.get(pw);
+    if(!v.active){ showErr("這組代碼已停用，請向您的業務專員確認"); return; }
+    custGoScoped(pw, v.scope, v.rep); return;
   }
+  // 相容：業務固定碼（一組 = 該業務全部客戶共用）→ 命中後讓客戶選新車／改裝
+  if(loaded && (caterhamCodes.has(pw) || camperCodeMap.has(pw))){
+    const inCat=caterhamCodes.has(pw), inCamp=camperCodeMap.has(pw);
+    _custName=""; _custBase=pw; _custRep=camperCodeMap.get(pw)||null;
+    if(inCat && inCamp){ custOpenSys(); return; }
+    custGo(inCat?"caterham":"camper"); return;
+  }
+  // 舊式字母碼相容（c／s／m…）
   const letter=pw.slice(0,1), base=pw.slice(1);
   const route=vipRoutes.find(r=>String(r.ltr||"").toLowerCase()===letter);
-  if(!route){ showErr("密碼開頭的字母不正確（應為 "+lettersTxt+"）"); return; }
-
+  if(!route){ showErr("代碼不正確，請向您的業務專員確認"); return; }
   let sys, brand=null, rep=null;
   if(route.dest==="camper"){
-    if(loaded && !camperCodeMap.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; }
+    if(loaded && !camperCodeMap.has(base)){ showErr("代碼不正確，請向您的業務專員確認"); return; }
     sys="camper"; rep=camperCodeMap.get(base)||null;
-  } else {   // caterham / sunlight（同一支程式，差在鎖哪個品牌）
-    if(loaded && !caterhamCodes.has(base)){ showErr("密碼不正確，請向您的業務專員確認"); return; }
+  } else {
+    if(loaded && !caterhamCodes.has(base)){ showErr("代碼不正確，請向您的業務專員確認"); return; }
     sys="caterham"; brand=(route.dest==="sunlight")?"sunlight":"caterham";
   }
-
-  const handoff={ sys:sys, pass:base, name:name, brand:brand, rep:rep, ts:Date.now() };
+  const handoff={ sys:sys, pass:base, name:"", brand:brand, rep:rep, ts:Date.now() };
   try{ sessionStorage.setItem(HKEY, JSON.stringify(handoff)); }
   catch(e){ showErr("此瀏覽器不支援，請改用 Safari 或 Chrome"); return; }
-  showApp(targetOf(sys));   // 同一頁內嵌顯示，網址不變
+  showApp(targetOf(sys));
+}
+
+/* 客戶：統一代碼登入後選新車／改裝（跟員工一樣）。brand 留空＝新車不鎖品牌、Caterham＋Sunlight 都看得到 */
+let _custName="", _custBase="", _custRep=null;
+function custGo(sys){
+  const rep=(sys==="camper")?_custRep:null;
+  const handoff={ sys:sys, pass:_custBase, name:_custName, brand:null, rep:rep, ts:Date.now() };
+  try{ sessionStorage.setItem(HKEY, JSON.stringify(handoff)); }
+  catch(e){ showErr("此瀏覽器不支援，請改用 Safari 或 Chrome"); return; }
+  const sm=document.getElementById("sysModal"); if(sm) sm.style.display="none";
+  showApp(targetOf(sys));
+}
+function custOpenSys(){ window._vipSysMode="cust"; const sm=document.getElementById("sysModal"); if(sm) sm.style.display="flex"; }
+window.vipSysPick=function(sys){ if(window._vipSysMode==="cust") custGo(sys); else if(typeof window.staffGo==="function") window.staffGo(sys); };
+/* 新式虛擬帳號碼：代碼已鎖好品牌 → 直接進那個品牌（camper=改裝，其餘=新車 App 鎖該品牌）；名字客戶在最後一步填 */
+function custGoScoped(code, scope, rep){
+  const sys=(scope==="camper")?"camper":"caterham";
+  const brand=(scope==="camper")?null:scope;
+  const handoff={ sys:sys, pass:code, name:"", brand:brand, rep:rep, ts:Date.now() };
+  try{ sessionStorage.setItem(HKEY, JSON.stringify(handoff)); }
+  catch(e){ showErr("此瀏覽器不支援，請改用 Safari 或 Chrome"); return; }
+  showApp(targetOf(sys));
 }
 
 $("go").addEventListener("click", go);
-["name","pw"].forEach(id=>$(id).addEventListener("keydown", e=>{ if(e.key==="Enter") go(); }));
+$("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") go(); });
 $("logout").addEventListener("click", backToLogin);
 $("frame").addEventListener("load", ()=>{ const l=$("frameLoading"); if(l) l.style.display="none"; });
 
@@ -314,14 +337,14 @@ $("frame").addEventListener("load", ()=>{ const l=$("frameLoading"); if(l) l.sty
 (function(){
   const h=readHandoff();
   if(h){ showApp(targetOf(h.sys)); }
-  else { $("loginView").style.display="flex"; $("name").focus(); }
+  else { $("loginView").style.display="flex"; var _p=$("pw"); if(_p&&_p.focus) _p.focus(); }
 })();
 </script>
 <div id="sysModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:18px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 24px 70px rgba(0,0,0,.45)">
     <h3 style="margin:0 0 20px;font-size:20px;text-align:center;color:#1a2a4a">選擇要進入的系統</h3>
-    <button type="button" onclick="staffGo('caterham')" style="width:100%;padding:15px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:12px">新車報價　→</button>
-    <button type="button" onclick="staffGo('camper')" style="width:100%;padding:15px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:12px">改裝報價　→</button>
+    <button type="button" onclick="vipSysPick('caterham')" style="width:100%;padding:15px;border-radius:12px;border:0;background:#2a56c6;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:12px">新車報價　→</button>
+    <button type="button" onclick="vipSysPick('camper')" style="width:100%;padding:15px;border-radius:12px;border:1px solid #2a56c6;background:#fff;color:#2a56c6;font-weight:800;font-size:16px;cursor:pointer;margin-bottom:12px">改裝報價　→</button>
     <button type="button" onclick="document.getElementById('sysModal').style.display='none'" style="width:100%;padding:10px;border:0;background:transparent;color:#8a92a0;font-size:14px;cursor:pointer">取消</button>
   </div>
 </div>
