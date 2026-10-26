@@ -224,6 +224,7 @@ const campCfg={apiKey:"AIzaSyA5VM_w5h7-IqHbHMNkSYsqpHweeicu30s",authDomain:"camp
 let caterhamCodes=new Set();   // 舊式：Caterham/Sunlight 業務固定碼（小寫）
 let camperCodeMap=new Map();   // 舊式：改裝固定碼(小寫) → 業務代號
 let vipCustMap=new Map();      // 新式：客戶虛擬帳號碼(小寫) → {rep, scope, active}
+let staffAuth={}, staffReady=false;   // 員工帳密表（名字小寫 → 密碼），給員工登入先驗證
 let loaded=false;
 let vipRoutes=[{ltr:"c",dest:"caterham"},{ltr:"s",dest:"sunlight"},{ltr:"m",dest:"camper"}];   // 開頭字母→目的地；後台設定會覆蓋
 
@@ -256,10 +257,20 @@ setStat("系統準備中…");
     const catDb=getFirestore(initializeApp(catCfg,"cat"));
     let prefix="2026";
     try{ const st=await getDoc(doc(catDb,"appdata","ctm_settings_v1")); if(st.exists()){ const s=JSON.parse(st.data().v||"{}"); if(s&&s.vipPrefix&&String(s.vipPrefix).trim()) prefix=String(s.vipPrefix).trim(); if(s&&Array.isArray(s.vipRoutes)&&s.vipRoutes.length) vipRoutes=s.vipRoutes; } }catch(e){}
-    try{ const ac=await getDoc(doc(catDb,"appdata","ctm_accounts_v2")); if(ac.exists()){ const a=JSON.parse(ac.data().v||"{}"); (a.sales||[]).forEach(s=>{ if(s.shared)return;
-      const code=((s.vipPass&&String(s.vipPass).trim())||(prefix+s.u)).toLowerCase(); if(code) caterhamCodes.add(code);
-      (s.vipCustomers||[]).forEach(c=>{ if(c&&c.code) vipCustMap.set(String(c.code).toLowerCase(), {rep:s.u, scope:c.scope||"caterham", active:c.active!==false}); });   // 新式：客戶虛擬帳號碼
-    }); } }catch(e){}
+    try{ const ac=await getDoc(doc(catDb,"appdata","ctm_accounts_v2")); if(ac.exists()){ const a=JSON.parse(ac.data().v||"{}");
+      /* 建員工帳密表（給員工登入先驗證） */
+      (a.sales||[]).forEach(s=>{ if(s&&s.u) staffAuth[String(s.u).toLowerCase()]=String(s.p==null?"123":s.p); });
+      const _sh=(a.sales||[]).find(s=>s&&s.shared); staffAuth["sales"]=_sh?String(_sh.p==null?"123":_sh.p):"123";
+      staffAuth["darren"]=String(a.adminPass||"oma2026");
+      staffAuth["accounting01"]=String(a.acctPass||"123"); staffAuth["accounting04"]=String(a.acctPass||"123");
+      staffAuth["accounting10"]=String(a.cashierPass||"123");
+      staffAuth["purchase"]="123"; staffAuth["tech"]="123";
+      staffReady=true; window.staffAuth=staffAuth; window.staffReady=true;   // 掛到 window，讓 classic 區塊的 staffNext 讀得到
+      (a.sales||[]).forEach(s=>{ if(s.shared)return;
+        const code=((s.vipPass&&String(s.vipPass).trim())||(prefix+s.u)).toLowerCase(); if(code) caterhamCodes.add(code);
+        (s.vipCustomers||[]).forEach(c=>{ if(c&&c.code) vipCustMap.set(String(c.code).toLowerCase(), {rep:s.u, scope:c.scope||"caterham", active:c.active!==false}); });   // 新式：客戶虛擬帳號碼
+      });
+    } }catch(e){}
 
     const campDb=getFirestore(initializeApp(campCfg,"camp"));
     try{ const cf=await getDoc(doc(campDb,"settings","config")); if(cf.exists()){ const db=cf.data()||{}; const base=(db.sales&&db.sales.custBase)||"2026"; ((db.sales&&db.sales.list)||[]).forEach(r=>{
@@ -370,6 +381,10 @@ function staffNext(){
   var err=document.getElementById("staffErr");
   if(!nm){ if(err) err.textContent="請輸入英文名字"; return; }
   if(!pw){ if(err) err.textContent="請輸入密碼"; return; }
+  if(window.staffReady && window.staffAuth){   // 名單載好了就先驗證；帳號或密碼不對就擋下
+    var want=window.staffAuth[nm.toLowerCase()];
+    if(want==null || String(pw)!==String(want)){ if(err) err.textContent="帳號密碼錯誤"; return; }
+  }
   if(err) err.textContent="";
   var sm=document.getElementById("sysModal"); if(sm) sm.style.display="flex";
 }
