@@ -262,7 +262,10 @@ setStat("系統準備中…");
     }); } }catch(e){}
 
     const campDb=getFirestore(initializeApp(campCfg,"camp"));
-    try{ const cf=await getDoc(doc(campDb,"settings","config")); if(cf.exists()){ const db=cf.data()||{}; const base=(db.sales&&db.sales.custBase)||"2026"; ((db.sales&&db.sales.list)||[]).forEach(r=>{ const code=((r.code&&String(r.code).trim())||(base+String(r.key||"").toLowerCase())).toLowerCase(); if(code) camperCodeMap.set(code,r.key); }); } }catch(e){}
+    try{ const cf=await getDoc(doc(campDb,"settings","config")); if(cf.exists()){ const db=cf.data()||{}; const base=(db.sales&&db.sales.custBase)||"2026"; ((db.sales&&db.sales.list)||[]).forEach(r=>{
+      const code=((r.code&&String(r.code).trim())||(base+String(r.key||"").toLowerCase())).toLowerCase(); if(code) camperCodeMap.set(code,r.key);
+      (r.vipCustomers||[]).forEach(c=>{ if(c&&c.code) vipCustMap.set(String(c.code).toLowerCase(), {rep:r.key, scope:"camper", active:c.active!==false}); });   // 改裝自己發的虛擬帳號碼
+    }); } }catch(e){}
 
     loaded=(caterhamCodes.size>0 || camperCodeMap.size>0 || vipCustMap.size>0);
   }catch(e){ console.warn("載入代碼失敗",e); }
